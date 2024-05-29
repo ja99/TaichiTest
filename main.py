@@ -1,34 +1,44 @@
+import math
+import time
+
+import numpy as np
+
 import taichi as ti
-import taichi.math as tm
 
 ti.init(arch=ti.vulkan)
 
-n = 1080
-pixels = ti.field(dtype=float, shape=(n * 2, n))
+spheres_np = np.array(
+    [
+        [2.0, 0.0, 0.0, 0.5],
+        [0.0, 1.0, 0.0, 0.5],
+        [0.0, 0.0, 7.0, 0.5]
+    ],
+    dtype=np.float32,
+)  # n x (x, y, z, radius)
+
+spheres = ti.field(dtype=ti.f32, shape=spheres_np.shape)  # n x (x, y, z, radius)
+spheres.from_numpy(spheres_np)
+
+point = ti.Vector([0.0, 0.0, 0.0])
+
+out = ti.field(dtype=ti.f32, shape=(spheres.shape[0]))
 
 
 @ti.func
-def complex_sqr(z):  # complex square of a 2D vector
-    return tm.vec2(z[0] * z[0] - z[1] * z[1], 2 * z[0] * z[1])
+def sdf_circle(point_pos, center_pos, radius: float):
+    return (point_pos - center_pos).norm() - radius
 
 
 @ti.kernel
-def paint(t: float):
-    for i, j in pixels:  # Parallelized over all pixels
-        c = tm.vec2(-0.8, tm.cos(t) * 0.2)
-        z = tm.vec2(i / n - 1, j / n - 0.5) * 2
-        iterations = 0
-        while z.norm() < 20 and iterations < 50:
-            z = complex_sqr(z) + c
-            iterations += 1
-        pixels[i, j] = 1 - iterations * 0.02
+def my_kernel():
+    for i in range(spheres.shape[0]):
+        out[i] = sdf_circle(point, ti.Vector([spheres[i, 0], spheres[i, 1], spheres[i, 2]]), spheres[i, 3])
 
 
-gui = ti.GUI("Julia Set", res=(n * 2, n))
+def main():
+    my_kernel()
+    print(out.to_numpy())
 
-i = 0
-while gui.running:
-    paint(i * 0.03)
-    gui.set_image(pixels)
-    gui.show()
-    i += 1
+
+if __name__ == "__main__":
+    main()
