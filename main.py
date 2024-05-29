@@ -89,7 +89,7 @@ def ray_march():
 
 
 def main():
-    print(ray_march())
+    ray_march()
     print(results)
 
 
