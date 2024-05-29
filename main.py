@@ -24,14 +24,14 @@ class Sphere:
 
 spheres = Sphere.field(shape=3)
 spheres[0] = Sphere(Vec3([5.0, 0.0, 0.0]), 1.0)
-spheres[1] = Sphere(Vec3([0.0, 5.0, 0.0]), 1.0)
-spheres[2] = Sphere(Vec3([0.0, 0.0, 5.0]), 1.0)
+spheres[1] = Sphere(Vec3([0.0, 4.0, 0.0]), 1.0)
+spheres[2] = Sphere(Vec3([0.0, 0.0, 3.0]), 1.0)
 
 
 point = Vec3([0.0, 0.0, 0.0])
 
 results = ti.field(dtype=ti.f32, shape=(spheres.shape[0]))
-out = ti.field(ti.f32, 1)
+out = ti.field(ti.f32, ())
 
 
 
@@ -44,7 +44,7 @@ def my_kernel():
 
 def main():
     my_kernel()
-    print(results)
+    print(out)
 
 
 if __name__ == "__main__":
